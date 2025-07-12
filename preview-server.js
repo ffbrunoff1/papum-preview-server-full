@@ -31,6 +31,7 @@ app.get('/', (req, res) => {
 app.use('/preview', express.static(PREVIEWS_DIR));
 
 app.post('/build', async (req, res) => {
+  console.log('📩 Requisição recebida em /build');
   const { files } = req.body;
   const id = nanoid();
   const projectDir = path.join(PREVIEWS_DIR, id);
