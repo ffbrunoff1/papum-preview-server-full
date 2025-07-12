@@ -41,7 +41,8 @@ app.post('/build', async (req, res) => {
   await fs.mkdir(srcDir, { recursive: true });
   await fs.mkdir(publicDir, { recursive: true });
 
-  await Promise.all(Object.entries(files).map(async ([filePath, content]) => {
+  const fileContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+await fs.promises.writeFile(path.join(projectDir, filePath), fileContent);
     const fullPath = path.join(projectDir, filePath);
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
     await fs.writeFile(fullPath, content);
