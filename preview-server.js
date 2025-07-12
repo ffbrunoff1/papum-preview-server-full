@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 
 app.use('/preview', express.static(PREVIEWS_DIR));
 
-app.post('/preview', async (req, res) => {
+app.post('/build', async (req, res) => {
   const { files } = req.body;
   const id = nanoid();
   const projectDir = path.join(PREVIEWS_DIR, id);
@@ -48,7 +48,7 @@ app.post('/preview', async (req, res) => {
 
   try {
     await runBuild(projectDir);
-    res.json({ url: `/preview/${id}/dist/` });
+    res.json({ url: `https://${req.headers.host}/preview/${id}/dist/` });
   } catch (e) {
     res.status(500).json({ error: 'Erro no build', log: e.toString() });
   }
