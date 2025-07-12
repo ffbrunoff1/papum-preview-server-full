@@ -17,7 +17,7 @@ await fs.mkdir(PREVIEWS_DIR, { recursive: true });
 
 function runBuild(projectDir) {
   return new Promise((resolve, reject) => {
-    exec('npm install && npm run build', { cwd: projectDir }, (err, stdout, stderr) => {
+    exec('corepack enable && pnpm install && pnpm run build', { cwd: projectDir }, (err, stdout, stderr) => {
       if (err) return reject(stderr);
       resolve(stdout);
     });
