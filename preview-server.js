@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
@@ -32,7 +31,12 @@ app.use('/preview', express.static(PREVIEWS_DIR));
 
 app.post('/build', async (req, res) => {
   console.log('📩 Requisição recebida em /build');
+
   const { files } = req.body;
+  if (!files || typeof files !== 'object') {
+    return res.status(400).json({ error: 'Payload inválido: "files" ausente ou malformado.' });
+  }
+
   const id = nanoid();
   const projectDir = path.join(PREVIEWS_DIR, id);
   const srcDir = path.join(projectDir, 'src');
@@ -41,20 +45,26 @@ app.post('/build', async (req, res) => {
   await fs.mkdir(srcDir, { recursive: true });
   await fs.mkdir(publicDir, { recursive: true });
 
-  const fileContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-await fs.promises.writeFile(path.join(projectDir, filePath), fileContent);
-    const fullPath = path.join(projectDir, filePath);
-    await fs.mkdir(path.dirname(fullPath), { recursive: true });
-    await fs.writeFile(fullPath, content);
-  }));
-
   try {
+    await Promise.all(
+      Object.entries(files).map(async ([filePath, content]) => {
+        const fileContent = typeof content === 'string'
+          ? content
+          : JSON.stringify(content, null, 2);
+        const fullPath = path.join(projectDir, filePath);
+        await fs.mkdir(path.dirname(fullPath), { recursive: true });
+        await fs.writeFile(fullPath, fileContent);
+      })
+    );
+
     await runBuild(projectDir);
-    res.json({ url: `https://${req.headers.host}/preview/${id}/dist/` });
+    const previewUrl = `https://${req.headers.host}/preview/${id}/dist/`;
+    res.json({ url: previewUrl });
   } catch (e) {
+    console.error('Erro ao gerar preview:', e);
     res.status(500).json({ error: 'Erro no build', log: e.toString() });
   }
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
